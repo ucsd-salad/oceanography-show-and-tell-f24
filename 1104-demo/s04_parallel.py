@@ -1,5 +1,6 @@
 from pathlib import Path
 from joblib import Parallel, delayed
+from tqdm import tqdm
 
 from s02_function import recognize_and_write
 
@@ -15,7 +16,7 @@ def main(argv) -> int:
     files = list(input_dir.iterdir())
 
     Parallel(n_jobs=-1)(
-        delayed(recognize_and_write)(img_path, out_dir) for img_path in files
+        delayed(recognize_and_write)(img_path, out_dir) for img_path in tqdm(files)
     )
 
     return 0
