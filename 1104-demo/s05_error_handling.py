@@ -16,15 +16,23 @@ class RecognitionResult(Enum):
 def recognize_and_write_if_needed(
     img_path: Path, out_dir: Path
 ) -> tuple[Path, RecognitionResult, str | None]:
+    # name of the output file
     out_path = out_dir / img_path.with_suffix(".txt").name
+
+    # if it exists, skip
     if out_path.exists():
         return img_path, RecognitionResult.SKIP, None
+
+    # if it doesn't exist, try to recognize
     try:
         img = Image.open(img_path)
         text = recognize_image(img)
         out_path.write_text(text)
     except Exception as e:
+        # if an error occurs, return the error message
         return img_path, RecognitionResult.ERROR, str(e)
+
+    # if everything is successful, return success
     return img_path, RecognitionResult.SUCCESS, None
 
 
@@ -38,11 +46,12 @@ def main(argv) -> int:
 
     files = list(input_dir.iterdir())
 
-    results = Parallel(n_jobs=-1, backend="multiprocessing")(
+    results = Parallel(n_jobs=-1)(
         delayed(recognize_and_write_if_needed)(img_path, out_dir)
         for img_path in tqdm(files)
     )
 
+    # print the results
     for img_path, result, message in results:
         if result == RecognitionResult.SUCCESS:
             # print(f"Recognized {img_path}")
